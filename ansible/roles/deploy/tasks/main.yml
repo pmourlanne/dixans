@@ -1,0 +1,49 @@
+# User
+- name: Create dixans user
+  user: name=dixans
+
+# Git package + repo
+- name: Install git package
+  apt: pkg=git state=present
+
+- name: Create repo directory
+  file: path=/srv/dixans state=directory owner=dixans group=dixans mode=0775
+
+- git: repo=https://github.com/pmourlanne/dixans.git dest=/srv/dixans
+  become: true
+  become_user: dixans
+
+# Venv
+- apt: pkg=python-virtualenv state=present update_cache=yes
+
+- pip: requirements=/srv/dixans/requirements.txt virtualenv=/srv/dixans/venv
+  become_user: dixans
+
+# Supervisor
+- name: Install supervisor package
+  apt: pkg=supervisor state=present update_cache=yes
+
+- name: Make sure the log directory exists
+  file:
+    path=/var/log/dixans
+    owner=dixans
+    group=dixans
+    state=directory
+
+- name: Copy supervisor conf
+  template: src=supervisor.conf dest=/etc/supervisor/conf.d/dixans.conf
+
+- name: Supervisor reread
+  command: /usr/bin/supervisorctl reread
+
+- name: Supervisor update
+  command: /usr/bin/supervisorctl update
+
+- supervisorctl: name=dixans state=restarted
+
+# Nginx
+- apt: pkg=nginx state=present update_cache=yes
+
+- name: Copy nginx conf
+  template: src=nginx.conf dest=/etc/nginx/sites-enabled/dixans
+  notify: restart nginx
