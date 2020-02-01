@@ -9,14 +9,20 @@
 - name: Create repo directory
   file: path=/srv/dixans state=directory owner=dixans group=dixans mode=0775
 
-- git: repo=https://github.com/pmourlanne/dixans.git dest=/srv/dixans
+- name: Pull repo
+  git: repo=https://github.com/pmourlanne/dixans.git dest=/srv/dixans
   become: true
   become_user: dixans
 
 # Venv
-- apt: pkg=python-virtualenv state=present update_cache=yes
+- name: Install python-virtualenv
+  apt: pkg=python-virtualenv state=present update_cache=yes
 
-- pip: requirements=/srv/dixans/requirements.txt virtualenv=/srv/dixans/venv
+- name: Install requirements in venv
+  pip:
+    requirements: /srv/dixans/requirements.txt
+    virtualenv: /srv/dixans/venv
+    virtualenv_python: python3
   become_user: dixans
 
 # Supervisor
@@ -39,11 +45,13 @@
 - name: Supervisor update
   command: /usr/bin/supervisorctl update
 
-- supervisorctl: name=dixans state=restarted
+- supervisorctl: name=dixans_wsgi state=restarted
 
 # Nginx
-- apt: pkg=nginx state=present update_cache=yes
+- name: Install nginx packags
+  apt: pkg=nginx state=present update_cache=yes
 
 - name: Copy nginx conf
-  template: src=nginx.conf dest=/etc/nginx/sites-enabled/dixans
+  # Template needs to be before `ctp_reverse_proxy.conf`, don't ask too many questions`
+  template: src=nginx.conf dest=/etc/nginx/sites-enabled/aaadixans
   notify: restart nginx

@@ -1,7 +1,14 @@
+### Venv
+
+```sh
+mkvirtualenv -p `which python3` dixans
+```
+
 ### Deploy
 
 ```sh
-# In the venv
+workon dixans
 pip install -r dev-requirements.txt
+cd ansible
+./playbook.sh deploy.yml
 ```
-
