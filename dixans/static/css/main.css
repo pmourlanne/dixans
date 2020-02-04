@@ -3997,3 +3997,16 @@ input, select, textarea {
 	body.is-mobile.landing #footer {
 		background-color: #1d242a;
 	}
+
+/* Custom */
+@media screen and (min-width: 980px) {
+	p.only-sm {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 980px) {
+	p.only-lg {
+		display: none;
+	}
+}
